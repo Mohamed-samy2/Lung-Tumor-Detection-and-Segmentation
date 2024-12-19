@@ -1,0 +1,16 @@
+ultralytics==8.3.49
+matplotlib==3.7.5
+opencv-contrib-python==4.10.0.84
+pillow==10.3.0
+numpy==1.26.4
+streamlit==1.41.0
+reportlab==4.2.5
+tensorflow==2.16.1
+keras==3.3.3
+einops==0.8.0
+timm==1.0.12
+torch==2.5.1+cu118
+torchvision==0.20.0+cu118
+torchaudio==2.2.0+cu118
+--extra-index-url https://download.pytorch.org/whl/cu118
+git+https://github.com/bowang-lab/MedSAM.git

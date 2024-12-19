@@ -1,0 +1,7 @@
+[theme]
+base = "dark"                 # Set the base theme to dark mode
+#primaryColor = "#FFFFFF"      # Customize as needed
+#backgroundColor = "#000000"   # Set background to black
+secondaryBackgroundColor = "#333333"  # Optional for contrast sections
+textColor = "#FFFFFF"         # White text color for readability
+font = "sans serif" 

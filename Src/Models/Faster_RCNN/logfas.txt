@@ -1,0 +1,21 @@
+Epochs 20 | learning_rate 0.01 | weight_decay 0.0005| optimizer SGD| loss function Faster RCNN Loss | Batch size 16| Image size 256
+Epoch 1| Train_loss: 0.3343| Validate_loss: 0.3499| Best Val 0.3499| lr 0.01
+Epoch 2| Train_loss: 0.2410| Validate_loss: 0.2903| Best Val 0.2903| lr 0.01
+Epoch 3| Train_loss: 0.1986| Validate_loss: 0.3246| Best Val 0.2903| lr 0.01
+Epoch 4| Train_loss: 0.1705| Validate_loss: 0.3274| Best Val 0.2903| lr 0.01
+Epoch 5| Train_loss: 0.1482| Validate_loss: 0.3930| Best Val 0.2903| lr 0.01
+Epoch 6| Train_loss: 0.1190| Validate_loss: 0.4476| Best Val 0.2903| lr 0.001
+Epoch 7| Train_loss: 0.1082| Validate_loss: 0.4757| Best Val 0.2903| lr 0.001
+Epoch 8| Train_loss: 0.1032| Validate_loss: 0.4837| Best Val 0.2903| lr 0.001
+Epoch 9| Train_loss: 0.0989| Validate_loss: 0.5040| Best Val 0.2903| lr 0.001
+Epoch 10| Train_loss: 0.0941| Validate_loss: 0.5301| Best Val 0.2903| lr 0.001
+Epoch 11| Train_loss: 0.0909| Validate_loss: 0.5276| Best Val 0.2903| lr 0.0001
+Epoch 12| Train_loss: 0.0902| Validate_loss: 0.5313| Best Val 0.2903| lr 0.0001
+Epoch 13| Train_loss: 0.0911| Validate_loss: 0.5298| Best Val 0.2903| lr 0.0001
+Epoch 14| Train_loss: 0.0900| Validate_loss: 0.5342| Best Val 0.2903| lr 0.0001
+Epoch 15| Train_loss: 0.0901| Validate_loss: 0.5335| Best Val 0.2903| lr 0.0001
+Epoch 16| Train_loss: 0.0896| Validate_loss: 0.5351| Best Val 0.2903| lr 1e-05
+Epoch 17| Train_loss: 0.0885| Validate_loss: 0.5361| Best Val 0.2903| lr 1e-05
+Epoch 18| Train_loss: 0.0906| Validate_loss: 0.5350| Best Val 0.2903| lr 1e-05
+Epoch 19| Train_loss: 0.0893| Validate_loss: 0.5357| Best Val 0.2903| lr 1e-05
+Epoch 20| Train_loss: 0.0895| Validate_loss: 0.5359| Best Val 0.2903| lr 1e-05
