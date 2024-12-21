@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from ..BaseModel import BaseModel
-
+import matplotlib.pyplot as plt
 # Define the custom loss function
 class BCEDiceLoss(tf.keras.losses.Loss):
     def _init_(self, epsilon=1e-6, prob_of_bce=0.8, **kwargs):
@@ -38,21 +38,30 @@ class Cropped_Segmentation(BaseModel):
             compile=False  # Disable compilation if you're not retraining the model
             )
     
-    def run(self,images , w_h):
+    def run(self,images , boxes):
         results = []
-        for img in images:
+        h_w = []
+        for img, box in zip(images,boxes):
             preprocessed_image = self._image_preprocessing(img)
             # Make predictions
             predicted_mask = self.model.predict(preprocessed_image)
-            results.append(self._image_postprocessing(predicted_mask))
+            mask = self._image_postprocessing(predicted_mask,box)
+            h_w.append(self._get_hw(mask))
+            results.append(mask)
         
-        return results
+        return results , h_w
     
-    def _image_postprocessing(self,mask):
-        # Post-process the predicted mask if necessary
-        mask = (mask > 0.5).astype(np.uint8)  # Binarize if the output is a probability map
-        # Save or visualize the predicted mask
+    def _image_postprocessing(self,mask,box):
+        
         mask = np.squeeze(mask, axis=(0, -1))
+        
+        xmin, ymin, xmax, ymax = map(int, box)
+        mask = cv2.resize(
+        mask,
+        (xmax-xmin,ymax-ymin),  
+        interpolation=cv2.INTER_LANCZOS4 
+        )
+        mask = (mask > 0.5).astype(np.uint8)
         return mask
         
     def _image_preprocessing(self,img):
@@ -62,6 +71,17 @@ class Cropped_Segmentation(BaseModel):
         img = np.expand_dims(img, axis=0)
         
         return img
+    
+    def _get_hw(self,mask):
+        rows, cols = np.where(mask == 1)
+        if rows.size > 0 and cols.size > 0:
+            height = rows.max() - rows.min() + 1
+            width = cols.max() - cols.min() + 1
+        else:
+            # If no non-zero pixels equal to 1 are found, return 0 for height and width
+            height = 0
+            width = 0
+        return (height, width)
 
 if __name__ == "__main__":
     img = cv2.imread(r"E:\Computer Vision Project\Lung-Tumor-Detection-and-Segmentation-\Data\val\images\Subject_60\49.png", cv2.IMREAD_GRAYSCALE)

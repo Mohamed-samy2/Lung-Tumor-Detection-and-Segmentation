@@ -21,13 +21,13 @@ class FasterRCNN(BaseModel):
         self.COCO_CLASSES = {0:"Background" , 1:"tumor"}
     
     def run(self,img):
-        img = self._image_preprocessing(img)
+        image_preprocessed = self._image_preprocessing(img)
         
         with torch.no_grad():
-            prediction = self.model(img)
+            prediction = self.model(image_preprocessed)
         
-        boxes, labels, scores,cropped_images,w_h = self._postprocessing(img,prediction)
-        return boxes, labels, scores,cropped_images,w_h
+        boxes, labels, scores,cropped_images = self._postprocessing(img,prediction)
+        return boxes, labels, scores,cropped_images
     
     def __get_model(self,num_classes):
         model = torchvision.models.detection.fasterrcnn_resnet50_fpn()
@@ -41,9 +41,8 @@ class FasterRCNN(BaseModel):
         labels=prediction[0]['labels'].cpu().numpy()
         scores=prediction[0]['scores'].cpu().numpy()
         cropped_images = []
-        w_h = []
         # Apply the threshold
-        threshold = 0.20
+        threshold = 0.40
         mask = scores > threshold
 
         # Filter out predictions based on threshold
@@ -54,12 +53,11 @@ class FasterRCNN(BaseModel):
         for box in filtered_boxes:
             xmin, ymin, xmax, ymax = map(int, box)
             cropped_image = img[ymin : ymax , xmin : xmax]
-            w_h.append((xmax-xmin,ymax-ymin))
             cropped_images.append(cropped_image)
         
         filtered_labels = [self.COCO_CLASSES[label] for label in filtered_labels]
         
-        return filtered_boxes, filtered_labels, filtered_scores,cropped_images,w_h
+        return filtered_boxes, filtered_labels, filtered_scores,cropped_images
     
     def _image_preprocessing(self,img):
         image_tensor = F.to_tensor(img).unsqueeze(0)

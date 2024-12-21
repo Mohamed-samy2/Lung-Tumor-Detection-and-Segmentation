@@ -26,18 +26,21 @@ class MedSam(BaseModel):
         
     
     
-    def run(self,img,box):
+    def run(self,img,boxes):
         
-        img1024 , H, W = self._image_preprocessing(img)
-        box_np = np.array([box])
-        # transfer box_np t0 1024x1024 scale
-        box_1024 = box_np / np.array([W, H, W, H]) * 1024
+        masks = []
+        for box in boxes:
+            img1024 , H, W = self._image_preprocessing(img)
+            box_np = np.array([box])
+            # transfer box_np t0 1024x1024 scale
+            box_1024 = box_np / np.array([W, H, W, H]) * 1024
+            
+            with torch.no_grad():
+                image_embedding = self.medsam_model.image_encoder(img1024) # (1, 256, 64, 64)
+            medsam_seg = self.medsam_inference(image_embedding, box_1024, H, W)
+            masks.append(medsam_seg)
         
-        with torch.no_grad():
-            image_embedding = self.medsam_model.image_encoder(img1024) # (1, 256, 64, 64)
-        medsam_seg = self.medsam_inference(image_embedding, box_1024, H, W)
-        
-        return medsam_seg ##(img_size, img_size)
+        return masks ##(img_size, img_size)
         
     def showmask(self,mask, ax, random_color=False):
         if random_color:
@@ -77,6 +80,7 @@ class MedSam(BaseModel):
 
         low_res_pred = torch.sigmoid(low_res_logits)  # (1, 1, 256, 256)
 
+        
         low_res_pred = F.interpolate(
             low_res_pred,
             size=(H, W),

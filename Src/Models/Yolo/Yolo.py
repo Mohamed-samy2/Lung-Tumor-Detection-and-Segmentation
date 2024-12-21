@@ -18,14 +18,14 @@ class YoloDetection(BaseModel):
         self.weights_path = os.path.join(os.path.dirname( os.path.abspath(__file__)),'best.pt')
         self.model = YOLO(self.weights_path)
     
-    def run(self, img,threshold=0.20 , resize_dim=(256, 256)):
+    def run(self, img,threshold=0.30 , resize_dim=(256, 256)):
         
         img_path = self._image_preprocessing(img)
         result = self.model(source=img_path, conf=threshold, save=False)[0]
         os.remove(img_path)
         
-        bounding_boxes, resized_cropped_tumors,tumor_count,tumor_scores, w_h = self._get_object_count(result , img , resize_dim)
-        return result.plot(), bounding_boxes, resized_cropped_tumors, tumor_count,tumor_scores,w_h
+        bounding_boxes, resized_cropped_tumors,tumor_count,tumor_scores = self._get_object_count(result , img , resize_dim)
+        return result.plot(), bounding_boxes, resized_cropped_tumors, tumor_count,tumor_scores
     
     
     def _get_object_count(self, result , img , resize_dim):
@@ -34,7 +34,6 @@ class YoloDetection(BaseModel):
         resized_cropped_tumors = []
         tumor_count = 0
         tumor_scores = []
-        w_h = []
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         for box in result.boxes:
             class_id = int(box.cls[0])
@@ -44,17 +43,16 @@ class YoloDetection(BaseModel):
                 xmin, ymin, xmax, ymax = map(int, box.xyxy[0].tolist())
                 
                 bounding_boxes.append((xmin, ymin, xmax, ymax))
-                w_h.append((xmax - xmin, ymax - ymin)) # w , h
                 
                 score = float(box.conf[0])  # Access the confidence score
                 tumor_scores.append(score)
                 
                 cropped_tumor = img[ymin:ymax, xmin:xmax]
-
+                cropped_tumor = cv2.cvtColor(cropped_tumor, cv2.COLOR_BGR2GRAY)
                 resized_tumor = cv2.resize(cropped_tumor, resize_dim, interpolation=cv2.INTER_AREA)
                 resized_cropped_tumors.append(resized_tumor)
                 
-        return bounding_boxes, resized_cropped_tumors, tumor_count , tumor_scores, w_h
+        return bounding_boxes, resized_cropped_tumors, tumor_count , tumor_scores
     
     def _image_preprocessing(self, img):
         

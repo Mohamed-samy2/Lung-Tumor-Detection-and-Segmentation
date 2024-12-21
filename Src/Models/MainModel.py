@@ -5,7 +5,7 @@ from .Faster_RCNN import FasterRCNN
 from .MedSam import MedSam
 from .Cropped_Segmentation import Cropped_Segmentation
 import cv2
-
+import numpy as np  
 
 class MainModel(BaseModel):
     def __init__(self):
@@ -17,20 +17,70 @@ class MainModel(BaseModel):
         self.Cropped_Segmentation_Model = Cropped_Segmentation()
         
     def run(self,img):
+        
+        detect = False
+        boxes, labels, scores, cropped_fast = self.Faster_RCNN_Model.run(img.copy())
+        annotated_image, bounding_boxes, resized_cropped_tumors, tumor_count, tumor_scores = self.Yolo_Model.run(img.copy())
+        annotate_image_fast = self.__draw_bounding_boxes(img.copy(),boxes,labels,scores)
+        
+        if len(boxes) > len(bounding_boxes):
+            medsam_out = self._medsam_mask(self.Medsam_Model.run(img.copy(),boxes)) ## take img and list of boxes and return list of masks (256,256)
+            cropped ,h_w = self.Cropped_Segmentation_Model.run(cropped_fast,boxes) ## take img and list of masks and return list of cropped images (256,256)
+            segmented_image= self._segment_cropped(img.copy(),cropped,boxes)
+            detect = True
+            return segmented_image , medsam_out , annotate_image_fast , h_w , len(labels) , boxes , detect
+    
+        elif len(boxes) < len(bounding_boxes):
+            medsam_out = self._medsam_mask(self.Medsam_Model.run(img.copy(),bounding_boxes)) ## take img and list of boxes and return list of masks (256,256)
+            cropped , h_w = self.Cropped_Segmentation_Model.run(resized_cropped_tumors,bounding_boxes) ## take img and list of masks and return list of cropped images (256,256)
+            segmented_image = self._segment_cropped(img.copy(),cropped,bounding_boxes) ## take img and list of masks and return list of cropped images (256,256)
+            detect = True
+            return segmented_image , medsam_out , annotated_image , h_w , tumor_count , bounding_boxes,detect
+        
+        elif len(boxes) == 0 and len(bounding_boxes) == 0:
+            pred, h, w, tumor = self.Segmentation_Model.run(img.copy()) ## take img and return mask , height , width , tumor existence
+            if tumor == True:
+                tumor = 1
+            else: 
+                tumor = 0
+            return annotated_image , pred , h , w , bounding_boxes , tumor , detect
+        
+        yolo , fast = 0 , 0
+        for fast_score , yolo_score in zip(scores, tumor_scores):
+            if fast_score > yolo_score:
+                fast += 1
+            else:
+                yolo += 1
+        
+        if fast > yolo:
+            medsam_out = self._medsam_mask(self.Medsam_Model.run(img.copy(),boxes)) ## take img and list of boxes and return list of masks (256,256)
+            cropped , h_w = self.Cropped_Segmentation_Model.run(cropped_fast,boxes) ## take img and list of masks and return list of cropped images (256,256)
+            segmented_image = self._segment_cropped(img.copy(),cropped,boxes)
+            detect = True
+            return segmented_image , medsam_out , annotate_image_fast , h_w , len(labels) , boxes , detect
 
-        boxes, labels, scores,cropped_fast,w_h_fast = self.Faster_RCNN_Model.run(img)
+        else:
+            medsam_out = self._medsam_mask(self.Medsam_Model.run(img.copy(),bounding_boxes)) ## take img and list of boxes and return list of masks (256,256)
+            cropped , h_w = self.Cropped_Segmentation_Model.run(resized_cropped_tumors,bounding_boxes)
+            segmented_image = self._segment_cropped(img.copy(),cropped,bounding_boxes) ## take img and list of masks and return list of cropped images (256,256)
+            detect = True
+            return segmented_image , medsam_out , annotated_image , h_w , tumor_count , bounding_boxes,detect
         
-        annotated_image, bounding_boxes, resized_cropped_tumors, tumor_count, tumor_scores,w_h = self.Yolo_Model.run(img)
+    def _segment_cropped(self,img,cropped,boxes):
         
-        annotate_image = self.__draw_bounding_boxes(img.copy(),boxes,labels,scores)
+        for crop,box in zip(cropped,boxes):
+            xmin, ymin, xmax, ymax = map(int, box)
+            img[ymin:ymax, xmin:xmax] = crop*255
+            
+        return img
+    
+    def _medsam_mask(self,masks):
+        final_mask = np.zeros((256, 256))
+        for mask in masks:
+            final_mask += mask
         
-        pred, h, w, tumor = self.Segmentation_Model.run(img)
-        
-        if tumor == True or tumor_count >= 1: 
-            return annotate_image ,pred , h , w , bounding_boxes ,max(tumor_count,1)
-        
-        return annotate_image , pred , h , w , bounding_boxes , 0
-
+        return final_mask
+    
     def __draw_bounding_boxes(self,img,boxes,labels,scores):
         for box, label, score in zip(boxes, labels, scores):
             x1, y1, x2, y2 = map(int,box)

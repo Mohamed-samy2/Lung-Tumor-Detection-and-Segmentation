@@ -83,7 +83,6 @@ class Segmentation(BaseModel):
 
 if __name__ == '__main__':
     
-    # img = Image.open(r"E:\Computer Vision Project\Lung-Tumor-Detection-and-Segmentation-\Data\val\images\Subject_60\49.png")
     
     img = cv2.imread(r"E:\Computer Vision Project\Lung-Tumor-Detection-and-Segmentation-\Data\val\images\Subject_60\49.png", cv2.IMREAD_GRAYSCALE)
     
