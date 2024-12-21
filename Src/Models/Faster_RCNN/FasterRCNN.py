@@ -60,5 +60,5 @@ class FasterRCNN(BaseModel):
         return filtered_boxes, filtered_labels, filtered_scores,cropped_images
     
     def _image_preprocessing(self,img):
-        image_tensor = F.to_tensor(img).unsqueeze(0)
+        image_tensor = F.to_tensor(img).unsqueeze(0) # (1,256,256)
         return image_tensor.to(self.device)

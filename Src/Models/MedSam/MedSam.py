@@ -79,7 +79,6 @@ class MedSam(BaseModel):
             )
 
         low_res_pred = torch.sigmoid(low_res_logits)  # (1, 1, 256, 256)
-
         
         low_res_pred = F.interpolate(
             low_res_pred,

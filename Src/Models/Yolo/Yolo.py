@@ -18,7 +18,7 @@ class YoloDetection(BaseModel):
         self.weights_path = os.path.join(os.path.dirname( os.path.abspath(__file__)),'best.pt')
         self.model = YOLO(self.weights_path)
     
-    def run(self, img,threshold=0.30 , resize_dim=(256, 256)):
+    def run(self, img,threshold=0.20 , resize_dim=(256, 256)):
         
         img_path = self._image_preprocessing(img)
         result = self.model(source=img_path, conf=threshold, save=False)[0]

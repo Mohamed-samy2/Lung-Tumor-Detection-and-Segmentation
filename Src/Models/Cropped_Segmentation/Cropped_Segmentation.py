@@ -53,21 +53,21 @@ class Cropped_Segmentation(BaseModel):
     
     def _image_postprocessing(self,mask,box):
         
-        mask = np.squeeze(mask, axis=(0, -1))
+        mask = np.squeeze(mask, axis=(0, -1)) # (256,256)
         
         xmin, ymin, xmax, ymax = map(int, box)
         mask = cv2.resize(
         mask,
-        (xmax-xmin,ymax-ymin),  
+        (xmax-xmin,ymax-ymin),  # W , H
         interpolation=cv2.INTER_LANCZOS4 
         )
-        mask = (mask > 0.5).astype(np.uint8)
+        mask = (mask > 0.7).astype(np.uint8)
         return mask
         
     def _image_preprocessing(self,img):
         img  = cv2.resize(img,(256,256))
         img = img.astype(np.float32) / 255.0
-        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=-1) # (1,256,256,1)
         img = np.expand_dims(img, axis=0)
         
         return img
